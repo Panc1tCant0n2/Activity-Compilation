@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Table Comparison</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px;
+      background-color: #f5f5f5;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    button {
+      padding: 8px 14px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background-color: #f4c542;
+      color: #333;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #e0b935;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 60%;
+      margin: 20px auto;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #444; 
+      color: #fff;
+    }
+
+    td {
+      border-bottom: 1px solid #ddd;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tbody tr:hover {
+      background-color: #fff3cd;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Product Table Comparison</h2>
+
+  <h3>Add Product</h3>
+  <input type="text" id="name" placeholder="Product Name">
+  <input type="number" id="price" placeholder="Price">
+  <input type="text" id="category" placeholder="Category">
+  <br>
+
+  <button onclick="addProductInnerHTML()">Add (innerHTML)</button>
+  <button onclick="addProductDOM()">Add (DOM)</button>
+  <br>
+
+  <button onclick="loadHtml()">Load using HTML</button>
+  <button onclick="loadDOM()">Load using DOM Methods</button>
+  <button onclick="clearTable()">Clear Table</button>
+
+  <table id="productTable">
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Price</th>
+        <th>Category</th>
+        <th>Action</th> 
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p id="methodUsed"></p> 
+  <button onclick="performanceTest()">Performance Test</button>
+
+<script>
+  const tableBody = document.querySelector("#productTable tbody");
+  let products = [];
+
+  function clearTable() {
+    tableBody.innerHTML = "";
+  }
+
+  function loadHtml() {
+    clearTable();
+
+    products = [
+      { name: "Lucky 7", price: "₱30", category: "Canned Foods" },
+      { name: "Coke Zero 1.5L", price: "₱68", category: "Beverage" },
+      { name: "Cake", price: "₱120", category: "Pastry" }
+    ];
+
+    renderHTML();
+    document.getElementById("methodUsed").innerText = "Method Used: innerHTML";
+  }
+
+  function loadDOM() {
+    clearTable();
+
+    products = [
+      { name: "Nescafe Latte", price: "₱15", category: "Instant Coffee" },
+      { name: "ChizWeez", price: "₱40", category: "Spread/Filling" },
+      { name: "Slice Bread", price: "₱45", category: "Food" }
+    ];
+
+    renderDOM();
+    document.getElementById("methodUsed").innerText = "Method Used: DOM";
+  }
+
+  function renderHTML() {
+    let rows = "";
+
+    products.forEach(product => {
+      rows += `
+        <tr>
+          <td>${product.name}</td>
+          <td>${product.price}</td>
+          <td>${product.category}</td>
+          <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+        </tr>
+      `;
+    });
+
+    tableBody.innerHTML = rows;
+  }
+
+  function renderDOM() {
+    products.forEach(product => {
+      addRowDOM(product);
+    });
+  }
+
+  function addProductInnerHTML() {
+    const name = document.getElementById("name").value;
+    const price = document.getElementById("price").value;
+    const category = document.getElementById("category").value;
+
+    if (!name || !price || !category) {
+      alert("Please fill all fields!");
+      return;
+    }
+
+    products.push({ name, price: "₱" + price, category });
+    renderHTML();
+
+    document.getElementById("methodUsed").innerText = "Added using innerHTML";
+  }
+
+  function addProductDOM() {
+    const name = document.getElementById("name").value;
+    const price = document.getElementById("price").value;
+    const category = document.getElementById("category").value;
+
+    if (!name || !price || !category) {
+      alert("Please fill all fields!");
+      return;
+    }
+
+    const product = { name, price: "₱" + price, category };
+    products.push(product);
+
+    addRowDOM(product);
+    document.getElementById("methodUsed").innerText = "Added using DOM";
+  }
+
+  function addRowDOM(product) {
+    let row = document.createElement("tr");
+
+    let td1 = document.createElement("td");
+    td1.textContent = product.name;
+
+    let td2 = document.createElement("td");
+    td2.textContent = product.price;
+
+    let td3 = document.createElement("td");
+    td3.textContent = product.category;
+
+    let td4 = document.createElement("td");
+    let btn = document.createElement("button");
+    btn.textContent = "Delete";
+    btn.className = "delete-btn";
+    btn.onclick = function () {
+      deleteRow(btn);
+    };
+
+    td4.appendChild(btn);
+
+    row.appendChild(td1);
+    row.appendChild(td2);
+    row.appendChild(td3);
+    row.appendChild(td4);
+
+    tableBody.appendChild(row);
+  }
+
+  function deleteRow(button) {
+    const row = button.parentElement.parentElement;
+    row.remove();
+  }
+
+  function performanceTest() {
+    alert("Performance Test Activated");
+
+    clearTable();
+    products = [];
+
+    for (let i = 0; i < 1000; i++) {
+      products.push({
+        name: "Sample " + i,
+        price: "₱" + (i * 10),
+        category: "Test"
+      });
+    }
+
+    console.clear();
+
+    console.time("loadHtml");
+    renderHTML();
+    console.timeEnd("loadHtml");
+
+    clearTable();
+
+    console.time("loadDOM");
+    renderDOM();
+    console.timeEnd("loadDOM");
+  }
+</script>
+
+</body>
+</html>

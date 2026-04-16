@@ -1,0 +1,379 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taskify</title>
+    <style>
+      :root {
+  --bg: #eaf2ff;
+  --card: #ffffff;
+  --text: #111;
+  --muted: #666;
+  --primary: #1a73e8;
+}
+
+body.dark {
+  --bg: #121826;
+  --card: #1f2937;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --primary: #3b82f6;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text);
+}
+
+
+.container {
+  width: 720px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.toggle {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+}
+
+/* Stats Area */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat .created  .completed  .removed  .edited {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 10px;
+  color:#ef4444;
+}
+
+
+
+/* Input Area */
+.task-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.task-input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+}
+
+.task-input button {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+}
+
+/* Sort Area */
+.sort-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.sort-buttons button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sort-buttons .active {
+  background: var(--primary);
+  color: white;
+}
+
+
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.bulk-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.danger {
+  background: #ef4444;
+  color: white;
+}
+
+.warning {
+  background: #f59e0b;
+  color: white;
+}
+
+/* Tasks Area */
+.tasks {
+  background: var(--card);
+  padding: 25px;
+  border-radius: 12px;
+}
+
+.task {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.task.completed span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.task-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  margin-left: 6px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+}
+
+.footer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+    </style>
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Task Manager</h1>
+      <button class="toggle" id="darkToggle">🌙</button>
+    </div>
+
+    <p class="subtitle">Organize your tasks efficiently</p>
+
+    <div class="stats">
+      <div class="stat created">Created<br><span id="created">0</span></div>
+      <div class="stat completed">Completed<br><span id="completed">0</span></div>
+      <div class="stat removed">Removed<br><span id="removed">0</span></div>
+      <div class="stat edited">Edited<br><span id="edited">0</span></div>
+    </div>
+
+    <div class="task-input">
+      <input type="text" id="taskInput" placeholder="Enter a new task..." />
+      <button id="addBtn">+ Add</button>
+    </div>
+
+    <div class="sort-buttons">
+      <button data-sort="az">A-Z</button>
+      <button data-sort="za">Z-A</button>
+      <button class="active" data-sort="oldest">Oldest</button>
+      <button data-sort="newest">Newest</button>
+    </div>
+
+    <div class="bulk-actions">
+      <button class="danger" id="deleteAll">Delete All Tasks</button>
+      <button class="warning" id="resetAll">Reset All</button>
+    </div>
+
+    <div class="tasks" id="taskList">
+      <p class="empty">No tasks yet. Create one to get started!</p>
+    </div>
+  </div>
+
+  <p class="footer">Programmed by an Owen Bernardo Pacao</p>
+
+
+  <script>
+    let tasks = [];
+let stats = { created: 0, completed: 0, removed: 0, edited: 0 };
+
+const taskInput = document.getElementById("taskInput");
+const taskList = document.getElementById("taskList");
+
+/* Stats indicator */
+function updateStats() {
+  for (let key in stats) {
+    document.getElementById(key).textContent = stats[key];
+  }
+}
+
+/* Add Task Function */
+function addTask() {
+  if (!taskInput.value.trim()) 
+    return;
+
+  tasks.push({
+    text: taskInput.value,
+    completed: false,
+  });
+
+  stats.created++;
+  taskInput.value = "";
+  renderTasks();
+  updateStats();
+}
+
+document.getElementById("addBtn").onclick = addTask;
+
+taskInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") addTask();
+});
+
+function renderTasks() {
+  taskList.innerHTML = "";
+
+  if (!tasks.length) {
+    taskList.innerHTML =
+      `<p class="empty">No tasks yet. Create one to get started!</p>`;
+    return;
+  }
+
+  tasks.forEach((task, i) => {
+    const div = document.createElement("div");
+    div.className = "task" + (task.completed ? " completed" : "");
+
+    div.innerHTML = `
+      <div class="task-left">
+        <input type="checkbox" ${task.completed ? "checked" : ""}
+          onchange="toggleComplete(${i})" />
+        <span>${task.text}</span>
+      </div>
+      <div class="task-actions">
+        <button onclick="editTask(${i})">✏</button>
+        <button onclick="deleteTask(${i})">🗑</button>
+      </div>
+    `;
+
+    taskList.appendChild(div);
+  });
+}
+
+/* Task Actions */
+function toggleComplete(i) {
+  tasks[i].completed = !tasks[i].completed;
+  stats.completed += tasks[i].completed ? 1 : -1;
+  renderTasks();
+  updateStats();
+}
+
+function deleteTask(i) {
+  if (tasks[i].completed) stats.completed--;
+  tasks.splice(i, 1);
+  stats.removed++;
+  renderTasks();
+  updateStats();
+}
+
+function editTask(i) {
+  const text = prompt("Edit task:", tasks[i].text);
+  if (text) {
+    tasks[i].text = text;
+    stats.edited++;
+    renderTasks();
+    updateStats();
+  }
+}
+
+/* Sort Function */
+document.querySelectorAll(".sort-buttons button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".sort-buttons button")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const type = btn.dataset.sort;
+    if (type === "az") tasks.sort((a, b) => a.text.localeCompare(b.text));
+    if (type === "za") tasks.sort((a, b) => b.text.localeCompare(a.text));
+    if (type === "oldest") tasks.sort((a, b) => a.time - b.time);
+    if (type === "newest") tasks.sort((a, b) => b.time - a.time);
+
+    renderTasks();
+  };
+});
+
+/* Ctrl A + Del */
+document.getElementById("deleteAll").onclick = () => {
+  if (!tasks.length) return;
+  stats.removed += tasks.length;
+  stats.completed = 0;
+  tasks = [];
+  renderTasks();
+  updateStats();
+};
+
+document.getElementById("resetAll").onclick = () => {
+  if (!confirm("Reset everything?")) return;
+  tasks = [];
+  stats = { created: 0, completed: 0, removed: 0, edited: 0 };
+  localStorage.clear();
+  document.body.classList.remove("dark");
+  renderTasks();
+  updateStats();
+};
+
+/* Night and Day */
+const darkToggle = document.getElementById("darkToggle");
+
+darkToggle.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("dark", document.body.classList.contains("dark"));
+};
+
+if (localStorage.getItem("dark") === "true") {
+  document.body.classList.add("dark");
+}
+
+  </script>
+  </body>
+  </html>
